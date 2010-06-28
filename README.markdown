@@ -127,7 +127,7 @@ Bugs are likely.
 
 ## Install
 
-To fetch from CLojars (via Leningen) put this in your project.clj:
+To fetch from CLojars (via Leiningen) put this in your project.clj:
 
     [gaka "0.1.0"]
 
