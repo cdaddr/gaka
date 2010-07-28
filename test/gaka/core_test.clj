@@ -75,3 +75,10 @@
 
       (css [:a :color :red [:img :border :none] :font-style :italic])
       "a {\n  color: red;\n  font-style: italic;}\n\n  a img {\n    border: none;}\n\n"))
+
+(deftest test-inline-css
+  (=? (inline-css :color :red :border 1)
+      "color: red; border: 1;"
+
+      (inline-css {:color :red :border 1})
+      "color: red; border: 1;"))
