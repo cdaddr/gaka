@@ -15,6 +15,18 @@
       [{:selector ["a"]
         :keyvals [:color :red]}]
 
+      (compile* []  [:a {:color :red}])
+      [{:selector ["a"]
+        :keyvals [:color :red]}]
+
+      (compile* []  [:a :color :blue {:color :red}])
+      [{:selector ["a"]
+        :keyvals [:color :blue :color :red]}]
+
+      (compile* []  [:a {:color :red} :color :blue])
+      [{:selector ["a"]
+        :keyvals [:color :red :color :blue]}]
+
       (compile* [] [:a [:img :border :none]])
       [{:selector ["a"]
         :keyvals []}
@@ -56,6 +68,9 @@
       ""
       
       (css [:a :color :red [:img :border :none]])
+      "a {\n  color: red;}\n\n  a img {\n    border: none;}\n\n"
+
+      (css [:a {:color :red} [:img {:border :none}]])
       "a {\n  color: red;}\n\n  a img {\n    border: none;}\n\n"
 
       (css [:a :color :red [:img :border :none] :font-style :italic])

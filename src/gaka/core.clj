@@ -35,7 +35,7 @@
   (reduce (fn [rules selector]
            (binding [*context* (conj *context* selector)]
              (let [subrules (filter vector? xs)
-                   keyvals (flatten (remove vector? xs))
+                   keyvals (flatten (map #(if (map? %) (into [] %) %) (remove vector? xs)))
                    rules (conj rules (make-rule *context* keyvals))]
                (reduce (fn [rs x]
                          (compile* rs x))
