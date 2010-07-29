@@ -1,10 +1,42 @@
 (ns gaka.core-test
-  (:use [gaka.core] :reload-all)
-  (:use [clojure.test]))
+  (:use gaka.core
+        clojure.test))
 
 (defmacro =? [& body]
   `(are [x# y#] (= x# y#)
         ~@body))
+
+(deftest test-flatten
+  (let [flatten-seqs #'gaka.core/flatten-seqs
+        flatten-maps #'gaka.core/flatten-maps
+        flatten-keyvals #'gaka.core/flatten-keyvals]
+   (=? (flatten-seqs [1 '(2 3)])
+       [1 2 3])
+
+   (=? (flatten-seqs [1 '(2 [3 (4)])])
+       [1 2 [3 '(4)]])
+
+   (=? (flatten-seqs [1 '(2 (3 (4)))])
+       [1 2 3 4])
+
+   (=? (flatten-seqs [1 '(2 3 [4])])
+       [1 2 3 [4]])
+
+   (=? (flatten-maps [1 2 {3 4}])
+       [1 2 3 4])
+
+   (=? (flatten-maps [1 {2 3 4 5} 6])
+       [1 2 3 4 5 6])
+
+   (=? (flatten-keyvals [1 '(2 {3 4} 5)])
+       [1 2 3 4 5])
+
+   (=? (flatten-keyvals [1 [2 {3 4}]])
+       [1 [2 {3 4}]])
+
+   (=? (flatten-keyvals [1 '([2] 3 [4] {5 6})])
+       [1 [2] 3 [4] 5 6])
+))
 
 (deftest test-compile*
   (=? (compile* []  [:a])
@@ -52,6 +84,51 @@
         :keyvals [:border :none]}
        {:selector ["div" "img"]
         :keyvals [:border :none]}]))
+
+(deftest test-mixins
+  (=? (let [mixin (list :color :red)]
+        (compile* [] [:a mixin]))
+      [{:selector ["a"]
+        :keyvals [:color :red]}]
+
+      (let [a (list [:a :color :red])]
+        (compile* [] [:div a]))
+      [{:selector ["div"]
+        :keyvals []}
+       {:selector ["div" "a"]
+        :keyvals [:color :red]}]
+
+      (let [mixin {:color :red}]
+        (compile* [] [:div mixin]))
+      [{:selector ["div"]
+        :keyvals [:color :red]}]
+
+      (let [mixin {:color :red}]
+        (compile* [] [:div [:a mixin]]))
+      [{:selector ["div"]
+        :keyvals []}
+       {:selector ["div" "a"]
+        :keyvals [:color :red]}]
+
+      (let [mixin (list :color :red)
+            els (list [:a mixin] [:span mixin])]
+        (compile* [] [:div els]))
+      [{:selector ["div"]
+        :keyvals []}
+       {:selector ["div" "a"]
+        :keyvals [:color :red]}
+       {:selector ["div" "span"]
+        :keyvals [:color :red]}]
+
+      (let [mixin (list :color :red {:border :none})
+            els (list [:a mixin] :color :blue [:span mixin])]
+        (compile* [] [:div els]))
+      [{:selector ["div"]
+        :keyvals [:color :blue]}
+       {:selector ["div" "a"]
+        :keyvals [:color :red :border :none]}
+       {:selector ["div" "span"]
+        :keyvals [:color :red :border :none]}]))
 
 (deftest test-render-rule
   (=? (render-rule {:selector ["a"] :keyvals [:color :red]})
