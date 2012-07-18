@@ -1,9 +1,9 @@
 (ns gaka.core
-  (:require (clojure.contrib [string :as s])
+  (:require (clojure [string :as s])
             (clojure.java [io :as io])))
 
-(def *context* [])
-(def *print-indent* true)
+(def ^:dynamic *context* [])
+(def ^:dynamic *print-indent* true)
 
 (defn make-rule [selector keyvals]
   {:selector selector
@@ -11,7 +11,7 @@
 
 (defn indent [n]
   (when *print-indent*
-   (s/repeat n "  ")))
+    (reduce str (repeat n "  "))))
 
 (defn render-val [x]
   (cond (number? x) (str x)
@@ -21,7 +21,7 @@
   (when-not val
     (throw (IllegalArgumentException. (str "Missing value for key " (pr-str key) "."))))
   (let [indent (indent n)]
-   (str indent (name key) ": " (render-val val) ";")))
+    (str indent (name key) ": " (render-val val) ";")))
 
 (defn- render-keyvals [n sep keyvals]
   (s/join sep (map #(render-keyval n %)
@@ -71,14 +71,15 @@
                (reduce (fn [rs x]
                          (compile* rs x))
                        rules subrules))))
-          rules (s/split #"\s*,\s*" (name selector))))
+          rules (s/split (name selector) #"\s*,\s*")))
 
 (defn css [& rules]
   (let [rules (filter (complement empty?) rules)]
     (if-not (seq rules)
       ""
       (let [rules (reduce compile* [] rules)]
-        (s/map-str render-rule rules)))))
+        (reduce str
+         (map render-rule rules))))))
 
 (defn inline-css [& keyvals]
   (render-keyvals 0 " " (flatten-keyvals keyvals)))

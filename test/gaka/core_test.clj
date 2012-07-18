@@ -151,11 +151,46 @@
       "a {\n  color: red;}\n\n  a img {\n    border: none;}\n\n"
 
       (css [:a :color :red [:img :border :none] :font-style :italic])
-      "a {\n  color: red;\n  font-style: italic;}\n\n  a img {\n    border: none;}\n\n"))
+      "a {\n  color: red;\n  font-style: italic;}\n\n  a img {\n    border: none;}\n\n"
+
+      (css [:body
+            :padding 0
+            [:div#foo
+             [:a :color :red]]
+            :margin 0
+            [:div#bar
+             [:a :color :blue]]
+            :border 0])
+      "body {\n  padding: 0;\n  margin: 0;\n  border: 0;}\n\n    body div#foo a {\n      color: red;}\n\n    body div#bar a {\n      color: blue;}\n\n"))
+
+(deftest test-css-no-indent
+  (binding [gaka.core/*print-indent* false]
+   (=? (css nil)
+       ""
+      
+       (css [:a :color :red [:img :border :none]])
+       "a {\ncolor: red;}\n\na img {\nborder: none;}\n\n"
+
+       (css [:a {:color :red} [:img {:border :none}]])
+       "a {\ncolor: red;}\n\na img {\nborder: none;}\n\n"
+
+       (css [:a :color :red [:img :border :none] :font-style :italic])
+       "a {\ncolor: red;\nfont-style: italic;}\n\na img {\nborder: none;}\n\n"
+
+       (css [:body
+             :padding 0
+             [:div#foo
+              [:a :color :red]]
+             :margin 0
+             [:div#bar
+              [:a :color :blue]]
+             :border 0])
+       "body {\npadding: 0;\nmargin: 0;\nborder: 0;}\n\nbody div#foo a {\ncolor: red;}\n\nbody div#bar a {\ncolor: blue;}\n\n")))
 
 (deftest test-inline-css
   (=? (inline-css :color :red :border 1)
-      "color: red; border: 1;"
+      "color: red; border: 1;")
+  (is
+   (re-find #"^(color: red; border: 1;|border: 1; color: red;)$"
+            (inline-css {:color :red :border 1}))))
 
-      (inline-css {:color :red :border 1})
-      "color: red; border: 1;"))
