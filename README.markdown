@@ -1,4 +1,4 @@
-# gaka 0.2.0
+# gaka 0.3.0
 by [Brian Carper](http://briancarper.net)
 
 Gaka is a CSS-generating library for Clojure inspired partly by
@@ -172,7 +172,7 @@ Bugs are likely.
 
 To fetch from CLojars (via Leiningen) put this in your project.clj:
 
-    [gaka "0.2.0"]
+    [gaka "0.3.0"]
 
 ## License
 
