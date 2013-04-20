@@ -5,6 +5,13 @@ Gaka is a CSS-generating library for Clojure inspired partly by
 [Sass](http://sass-lang.com/) and similar to
 [Hiccup](http://github.com/weavejester/hiccup).
 
+## Installation
+
+To fetch from Clojars (via Leiningen) put this in your project.clj:
+```clojure
+[gaka "0.3.0"]
+```
+
 ## Features
 
 * Simple
@@ -31,122 +38,134 @@ means you can easily generate and manipulate them programatically.
 Rules are vectors, where the first element is a selector and the rest are
 either key/value pairs, or sub-rules.
 
-    user> (require '(gaka [core :as gaka]))
-    nil
-    user> (def rules [:div#foo
-                      :margin "0px"
-                      [:span.bar
-                       :color "black"
-                       :font-weight "bold"
-                       [:a:hover
-                        :text-decoration "none"]]])
-    #'user/rules
-    user> (println (gaka/css rules))
-    div#foo {
-      margin: 0px;}
+```clojure
+(require '(gaka [core :as gaka]))
 
-      div#foo span.bar {
-        color: black;
-        font-weight: bold;}
+(def rules [:div#foo
+            :margin "0px"
+            [:span.bar
+             :color "black"
+             :font-weight "bold"
+             [:a:hover
+              :text-decoration "none"]]])
 
-        div#foo span.bar a:hover {
-          text-decoration: none;}
+(gaka/css rules)
 
+; div#foo {
+;  margin: 0px;}
+;
+;  div#foo span.bar {
+;    color: black;
+;    font-weight: bold;}
+;
+;    div#foo span.bar a:hover {
+;      text-decoration: none;}
 
-    nil
-    user> (binding [gaka/*print-indent* false]
-            (println (gaka/css rules)))
-    div#foo {
-    margin: 0px;}
+(binding [gaka/*print-indent* false]
+  (gaka/css rules))
+  
+; div#foo {
+; margin: 0px;}
+;
+; div#foo span.bar {
+; color: black;
+; font-weight: bold;}
+;
+; div#foo span.bar a:hover {
+; text-decoration: none;}
 
-    div#foo span.bar {
-    color: black;
-    font-weight: bold;}
-
-    div#foo span.bar a:hover {
-    text-decoration: none;}
-
-
-    nil
-    user> (gaka/save-css "foo.css" rules)
-    nil
+(gaka/save-css "foo.css" rules)
+```
 
 Anything in a seq (e.g. a list) will be flattened into the surrounding context,
 which lets you have "mixins".
 
-    user> (def standard-attrs (list :margin 0 :padding 0 :font-size "12px"))
-    #'user/standard-attrs
-    user> (println (gaka/css [:div standard-attrs :color "red"]))
-    div {
-      margin: 0;
-      padding: 0;
-      font-size: 12px;
-      color: red;}
-    user> (defn color [x] (list :color x))
-    #'user/color
-    user> (println (gaka/css [:div (color "red")]))
-    div {
-      color: red;}
+```clojure
+(def standard-attrs (list :margin 0 :padding 0 :font-size "12px"))
+(gaka/css [:div standard-attrs :color "red"])
+
+; div {
+;   margin: 0;
+;   padding: 0;
+;   font-size: 12px;
+;   color: red;}
+
+(defn color [x] (list :color x))
+(gaka/css [:div (color "red")])
+
+; div {
+;  color: red;}
+```
 
 You can also use maps for attributes.  Keep in mind that maps are unordered, whereas
 order is significant in CSS (attributes can override earlier attributes).  To preserve
 order, either use "flattened" key/value pairs, or a mixture of map and flattened
 versions.
 
-    ;; WRONG!  The order of map keys/values is unpredictable.
-    ;; You may or may not get what you want.
-    user> (println (gaka/css [:a {:border 0 :border-left "1px"}]))
-    a {
-      border-left: 1px;
-      border: 0;}
+```clojure
+;; WRONG!  The order of map keys/values is unpredictable.
+;; You may or may not get what you want.
+(gaka/css [:a {:border 0 :border-left "1px"}])
+; a {
+;   border-left: 1px;
+;   border: 0;}
 
-    ;; OK
-    user> (println (gaka/css [:a :border 0 :border-left "1px"]))
-    a {
-      border: 0;
-      border-left: 1px;}
+;; OK
+(gaka/css [:a :border 0 :border-left "1px"])
+; a {
+;   border: 0;
+;   border-left: 1px;}
 
-    ;; OK
-    user> (println (gaka/css [:a (list :border 0 :border-left "1px")]))
-    a {
-      border: 0;
-      border-left: 1px;}
+;; OK
+(gaka/css [:a (list :border 0 :border-left "1px")])
+; a {
+;   border: 0;
+;   border-left: 1px;}
 
-    ;; OK
-    user> (println (gaka/css [:a :border 0 {:border-left "1px"}]))
-    a {
-      border: 0;
-      border-left: 1px;}
+;; OK
+(gaka/css [:a :border 0 {:border-left "1px"}])
+; a {
+;   border: 0;
+;   border-left: 1px;}
 
-    ;; OK
-    user> (println (gaka/css [:a {:border 0} {:border-left "1px"}]))
-    a {
-      border: 0;
-      border-left: 1px;}
+;; OK
+(gaka/css [:a {:border 0} {:border-left "1px"}])
+; a {
+;   border: 0;
+;   border-left: 1px;}
+```
 
 If you want a fancy selector or attribute that doesn't work as a keyword, use a
 string.
 
-    user> (println (gaka/css ["input[type=text]" :font-family "\"Bitstream Vera Sans\", monospace"]))
-    input[type=text] {
-      font-family: "Bitstream Vera Sans", monospace;}
+```clojure
+(gaka/css ["input[type=text]" :font-family "\"Bitstream Vera Sans\", monospace"])
+
+; input[type=text] {
+;   font-family: "Bitstream Vera Sans", monospace;}
+```
 
 If you want output suitable for inline CSS, use `inline-css`:
 
-    user> (println (str "<div style=\""
-                        (gaka/inline-css :color :red)
-                        "\">foo</div>"))
-    <div style="color: red;">foo</div>
+```clojure
+(str "<div style=\""
+  (gaka/inline-css :color :red)
+  "\">foo</div>"))
+  
+; <div style="color: red;">foo</div>
+```
 
 An easy way to compile your CSS to a file and make sure it's always up-to-date
 is to throw a `save-css` call at the bottom of your source file.
 
-    (ns my-site.css
-      (:require (gaka [core :as gaka)
+```clojure
+(ns my-site.css
+  (:require (gaka [core :as gaka])))
 
-    (def rules [...])
+(def rules [...])
 
-    (save-css "public/css/style.css" rules)
+(save-css "public/css/style.css" rules)
+```
 
 Now every time you re-compile this file (for example, `C-c C-k` in
 Slime/Emacs), a static CSS file in `public/css` will be generated or updated.
@@ -167,12 +186,6 @@ file and serve it statically.
 
 I wrote (most of) this in one afternoon while eating a tasty ham and turky sandwich.
 Bugs are likely.
-
-## Install
-
-To fetch from CLojars (via Leiningen) put this in your project.clj:
-
-    [gaka "0.3.0"]
 
 ## License
 
