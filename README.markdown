@@ -5,6 +5,13 @@ Gaka is a CSS-generating library for Clojure inspired partly by
 [Sass](http://sass-lang.com/) and similar to
 [Hiccup](http://github.com/weavejester/hiccup).
 
+## Installation
+
+To fetch from Clojars (via Leiningen) put this in your project.clj:
+```clojure
+[gaka "0.3.0"]
+```
+
 ## Features
 
 * Simple
@@ -179,12 +186,6 @@ file and serve it statically.
 
 I wrote (most of) this in one afternoon while eating a tasty ham and turky sandwich.
 Bugs are likely.
-
-## Install
-
-To fetch from CLojars (via Leiningen) put this in your project.clj:
-
-    [gaka "0.3.0"]
 
 ## License
 
